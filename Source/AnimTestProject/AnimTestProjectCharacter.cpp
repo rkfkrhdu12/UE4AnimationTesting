@@ -27,7 +27,7 @@ AAnimTestProjectCharacter::AAnimTestProjectCharacter()
 	bUseControllerRotationRoll = false;
 
 	// Configure character movement
-	GetCharacterMovement()->bOrientRotationToMovement = true; // Character moves in the direction of input...	
+	// GetCharacterMovement()->bOrientRotationToMovement = true; // Character moves in the direction of input...	
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 540.0f, 0.0f); // ...at this rotation rate
 	GetCharacterMovement()->JumpZVelocity = 600.f;
 	GetCharacterMovement()->AirControl = 0.2f;
@@ -63,10 +63,8 @@ void AAnimTestProjectCharacter::SetupPlayerInputComponent(class UInputComponent*
 	// We have 2 versions of the rotation bindings to handle different kinds of devices differently
 	// "turn" handles devices that provide an absolute delta, such as a mouse.
 	// "turnrate" is for devices that we choose to treat as a rate of change, such as an analog joystick
-	PlayerInputComponent->BindAxis("Turn", this, &APawn::AddControllerYawInput);
-	PlayerInputComponent->BindAxis("TurnRate", this, &AAnimTestProjectCharacter::TurnAtRate);
+	PlayerInputComponent->BindAxis("Turn", this, &AAnimTestProjectCharacter::Turn);
 	PlayerInputComponent->BindAxis("LookUp", this, &APawn::AddControllerPitchInput);
-	PlayerInputComponent->BindAxis("LookUpRate", this, &AAnimTestProjectCharacter::LookUpAtRate);
 
 	// handle touch devices
 	PlayerInputComponent->BindTouch(IE_Pressed, this, &AAnimTestProjectCharacter::TouchStarted);
@@ -137,4 +135,14 @@ void AAnimTestProjectCharacter::MoveRight(float Value)
 		// add movement in that direction
 		AddMovementInput(Direction, Value);
 	}
+}
+
+void AAnimTestProjectCharacter::Turn(float Value)
+{
+	if (FMath::Abs(Value) > .75f)
+		GetCharacterMovement()->bUseControllerDesiredRotation = false;
+	else
+		GetCharacterMovement()->bUseControllerDesiredRotation = true;
+
+	APawn::AddControllerYawInput(Value);
 }
