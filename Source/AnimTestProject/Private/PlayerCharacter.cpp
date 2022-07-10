@@ -5,6 +5,7 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "AnimInstanceBase.h"
 
 // Sets default values
 APlayerCharacter::APlayerCharacter()
@@ -35,33 +36,16 @@ APlayerCharacter::APlayerCharacter()
 	CameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	CameraComponent->SetupAttachment(CameraArmComponent);
 
-	Mesh = GetMesh();
-	if (Mesh != nullptr && Mesh->IsValidLowLevelFast()) AnimInstance = Mesh->GetAnimInstance();
 }
 
-// Called when the game starts or when spawned
 void APlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (Mesh == nullptr) Mesh = GetMesh();
-
-	if (AnimInstance == nullptr && Mesh != nullptr) AnimInstance = Mesh->GetAnimInstance();
-	if (AnimInstance != nullptr && AnimInstance->IsValidLowLevelFast())
-	{
-		AnimInstance->OnMontageBlendingOut.AddDynamic(this, &APlayerCharacter::OnAnimBlendOut);
-		AnimInstance->OnPlayMontageNotifyBegin.AddDynamic(this, &APlayerCharacter::OnAnimNotify);
-	}
+	OnAnimBlendOutDelegate.AddDynamic(this, &APlayerCharacter::OnAnimBlendOut);
+	OnAnimNotifyDelegate.AddDynamic(this, &APlayerCharacter::OnAnimNotify);
 }
 
-// Called every frame
-void APlayerCharacter::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-}
-
-// Called to bind functionality to input
 void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
@@ -74,50 +58,73 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 
 void APlayerCharacter::Fire()
 {
-	CurState = EPlayerState::Attack;
+	ChangeState(EPlayerState::Fire);
 
-	PlayMontage(FireAnimMontage);
+	PlayAnimMontage(FireAnimMontage);
 }
 
 void APlayerCharacter::Fire2()
 {
-	CurState = EPlayerState::Attack;
+	ChangeState(EPlayerState::Fire2);
 
-	PlayMontage(Fire2AnimMontage);
+	PlayAnimMontage(Fire2AnimMontage);
 }
 
-void APlayerCharacter::PlayMontage(UAnimMontage* montage)
+void APlayerCharacter::OnAnimBlendOut()
 {
-	if (montage == nullptr) return;
+	PrintString("OnAnimBlendOut");
 
-	PlayAnimMontage(montage);
+	ReturnState();
 }
 
-void APlayerCharacter::OnAnimBlendOut(UAnimMontage* Montage, bool bInterrupted)
+void APlayerCharacter::OnAnimNotify(const FName& NotifyName)
 {
-	CurState = EPlayerState::Idle;
-}
-
-void APlayerCharacter::OnAnimNotify(FName NotifyName, const FBranchingPointNotifyPayload& BranchingPointPayload)
-{
-	if (NotifyName == "Fire")
-		CurState = EPlayerState::Fire;
-
-	if (NotifyName == "Fire2")
-		CurState = EPlayerState::Fire2;
 }
 
 void APlayerCharacter::MoveForward(float AxisValue)
 {
-	if (CurState != EPlayerState::Idle) return;
+	if (!IsMoveable()) return;
 
 	AddMovementInput(GetActorForwardVector(), AxisValue);
 }
 
 void APlayerCharacter::MoveRight(float AxisValue)
 {
-	if (CurState != EPlayerState::Idle) return;
+	if (!IsMoveable()) return;
 
 	AddMovementInput(GetActorRightVector(), AxisValue);
+}
+
+void APlayerCharacter::ChangeState(EPlayerState nextState)
+{
+	if (CurState == nextState) return;
+
+	PrevState = CurState;
+	CurState = nextState;
+
+	PrintState();
+}
+
+void APlayerCharacter::ReturnState()
+{
+	if (PrevState == EPlayerState::Last) return;
+	
+	CurState = PrevState;
+	PrevState = EPlayerState::Last;
+	
+	PrintState();
+}
+
+bool APlayerCharacter::IsMoveable() const
+{
+	return CurState != EPlayerState::Fire2;
+}
+
+void APlayerCharacter::PrintState()
+{
+	const UEnum* enumPtr = FindObject<UEnum>(ANY_PACKAGE, TEXT("EPlayerState"), true);
+	if (!enumPtr) return;
+
+	UKismetSystemLibrary::PrintString(GetWorld(), enumPtr->GetNameStringByIndex((int32)CurState));
 }
 
