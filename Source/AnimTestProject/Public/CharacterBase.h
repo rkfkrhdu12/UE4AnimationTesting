@@ -5,7 +5,7 @@
 #include "CharacterBase.generated.h"
 
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FAnimBlendOut);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FAnimBlendOut, UAnimMontage*, Montage);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FAnimNotify, const FName&, NotifyName);
 
 UCLASS()
@@ -25,7 +25,11 @@ public:
 		virtual void OnAnimBlendOutA(UAnimMontage* Montage, bool bInterrupted);
 	UFUNCTION()
 		virtual void OnAnimNotifyA(FName NotifyName, const FBranchingPointNotifyPayload& BranchingPointPayload);
-	
+
+	UFUNCTION()
+		virtual void OnAnimBlendOut(UAnimMontage* Montage) {}
+	UFUNCTION()
+		virtual void OnAnimNotify(const FName& NotifyName) {}
 protected:
 	class USkeletalMeshComponent* Mesh = nullptr;
 	class UAnimInstanceBase* AnimInstance = nullptr;

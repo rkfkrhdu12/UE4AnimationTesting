@@ -5,6 +5,9 @@
 ACharacterBase::ACharacterBase()
 {
 	PrimaryActorTick.bCanEverTick = true;
+
+	OnAnimBlendOutDelegate.AddDynamic(this, &ACharacterBase::OnAnimBlendOut);
+	OnAnimNotifyDelegate.AddDynamic(this, &ACharacterBase::OnAnimNotify);
 }
 
 void ACharacterBase::BeginPlay()
@@ -24,9 +27,7 @@ void ACharacterBase::BeginPlay()
 
 void ACharacterBase::OnAnimBlendOutA(UAnimMontage* Montage, bool bInterrupted)
 {
-	PrintString("BlendOut");
-
-	OnAnimBlendOutDelegate.Broadcast();
+	OnAnimBlendOutDelegate.Broadcast(Montage);
 }
 
 void ACharacterBase::OnAnimNotifyA(FName NotifyName, const FBranchingPointNotifyPayload& BranchingPointPayload)

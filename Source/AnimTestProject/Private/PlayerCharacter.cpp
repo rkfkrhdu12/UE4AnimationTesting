@@ -29,21 +29,43 @@ APlayerCharacter::APlayerCharacter()
 
 	FVector CameraArmLocation = FVector::ZeroVector;
 	CameraArmLocation.X = -4.3f;
+	CameraArmLocation.Y = 10.f;
 	CameraArmLocation.Z = 15.f;
 	FRotator CameraArmRotate = FRotator(340.0f, 0, .0f);
 	CameraArmComponent->SetRelativeLocationAndRotation(CameraArmLocation, CameraArmRotate);
 
 	CameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	CameraComponent->SetupAttachment(CameraArmComponent);
-
 }
 
 void APlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+}
 
-	OnAnimBlendOutDelegate.AddDynamic(this, &APlayerCharacter::OnAnimBlendOut);
-	OnAnimNotifyDelegate.AddDynamic(this, &APlayerCharacter::OnAnimNotify);
+void APlayerCharacter::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+
+	if (bIsShootEnable)
+	{
+		FHitResult hitresult;
+		FVector GunMuzzleLocation = Mesh->GetSocketLocation(GunMuzzleName);
+		UKismetSystemLibrary::LineTraceSingle(GetWorld(),
+											  GunMuzzleLocation,
+											  GunMuzzleLocation + GetActorForwardVector() * 500.f,
+											  ETraceTypeQuery::TraceTypeQuery1,
+											  false,
+											  DummyActors,
+											  EDrawDebugTrace::ForOneFrame,
+											  hitresult,
+											  true,
+											  FLinearColor::Red,
+											  FLinearColor::Green,
+											  .1f);
+
+
+	}
 }
 
 void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -52,29 +74,47 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 
 	check(PlayerInputComponent);
 
-	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &APlayerCharacter::Fire);
-	PlayerInputComponent->BindAction("Fire2", IE_Pressed, this, &APlayerCharacter::Fire2);
+	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &APlayerCharacter::MouseLeftPress);
+	PlayerInputComponent->BindAction("Fire2", IE_Pressed, this, &APlayerCharacter::MouseRightPress);
+	PlayerInputComponent->BindAction("Fire2", IE_Released, this, &APlayerCharacter::MouseRightRelease);
 }
 
-void APlayerCharacter::Fire()
+void APlayerCharacter::MouseLeftPress()
 {
-	ChangeState(EPlayerState::Fire);
+	if (CurUpperState == EPlayerUpperState::Aim)
+	{
+		ChangeUpperState(EPlayerUpperState::Fire2);
 
-	PlayAnimMontage(FireAnimMontage);
+		PlayAnimMontage(Fire2AnimMontage);
+	}
+	else
+	{
+		ChangeUpperState(EPlayerUpperState::Fire);
+
+		PlayAnimMontage(FireAnimMontage);
+	}
 }
 
-void APlayerCharacter::Fire2()
+void APlayerCharacter::MouseRightPress()
 {
-	ChangeState(EPlayerState::Fire2);
-
-	PlayAnimMontage(Fire2AnimMontage);
+	ChangeUpperState(EPlayerUpperState::Aim);
 }
 
-void APlayerCharacter::OnAnimBlendOut()
+void APlayerCharacter::MouseRightRelease()
 {
-	PrintString("OnAnimBlendOut");
+	ChangeUpperState(EPlayerUpperState::Idle);
+}
 
-	ReturnState();
+void APlayerCharacter::OnAnimBlendOut(UAnimMontage* Montage)
+{
+	if (Montage->IsValidSlot("DefaultSlot"))
+	{
+		ReturnLowerState();
+	}
+	else
+	{
+		ReturnUpperState();
+	}
 }
 
 void APlayerCharacter::OnAnimNotify(const FName& NotifyName)
@@ -95,36 +135,63 @@ void APlayerCharacter::MoveRight(float AxisValue)
 	AddMovementInput(GetActorRightVector(), AxisValue);
 }
 
-void APlayerCharacter::ChangeState(EPlayerState nextState)
+void APlayerCharacter::ChangeUpperState(EPlayerUpperState nextState)
 {
-	if (CurState == nextState) return;
+	if (CurUpperState == nextState) return;
 
-	PrevState = CurState;
-	CurState = nextState;
+	PrevUpperState = CurUpperState;
+	CurUpperState = nextState;
 
-	PrintState();
+	PrintUpperState();
 }
 
-void APlayerCharacter::ReturnState()
+void APlayerCharacter::ReturnUpperState()
 {
-	if (PrevState == EPlayerState::Last) return;
-	
-	CurState = PrevState;
-	PrevState = EPlayerState::Last;
-	
-	PrintState();
+	if (PrevUpperState == EPlayerUpperState::Last) return;
+
+	CurUpperState = PrevUpperState;
+	PrevUpperState = EPlayerUpperState::Last;
+
+	PrintUpperState();
+}
+
+void APlayerCharacter::ChangeLowerState(EPlayerLowerState nextState)
+{
+	if (CurLowerState == nextState) return;
+
+	PrevLowerState = CurLowerState;
+	CurLowerState = nextState;
+
+	PrintUpperState();
+}
+
+void APlayerCharacter::ReturnLowerState()
+{
+	if (PrevLowerState == EPlayerLowerState::Last) return;
+
+	CurLowerState = PrevLowerState;
+	PrevLowerState = EPlayerLowerState::Last;
+
+	PrintLowerState();
 }
 
 bool APlayerCharacter::IsMoveable() const
 {
-	return CurState != EPlayerState::Fire2;
+	return CurLowerState == EPlayerLowerState::Idle && CurUpperState != EPlayerUpperState::Fire2;
 }
 
-void APlayerCharacter::PrintState()
+void APlayerCharacter::PrintUpperState()
 {
-	const UEnum* enumPtr = FindObject<UEnum>(ANY_PACKAGE, TEXT("EPlayerState"), true);
-	if (!enumPtr) return;
+	const UEnum* enumPtr = FindObject<UEnum>(ANY_PACKAGE, TEXT("EPlayerUpperState"), true);
+	if (enumPtr == nullptr) return;
 
-	UKismetSystemLibrary::PrintString(GetWorld(), enumPtr->GetNameStringByIndex((int32)CurState));
+	UKismetSystemLibrary::PrintString(GetWorld(), enumPtr->GetNameStringByIndex((int32)CurUpperState));
 }
 
+void APlayerCharacter::PrintLowerState()
+{
+	const UEnum* enumPtr = FindObject<UEnum>(ANY_PACKAGE, TEXT("EPlayerLowerState"), true);
+	if (enumPtr == nullptr) return;
+
+	UKismetSystemLibrary::PrintString(GetWorld(), enumPtr->GetNameStringByIndex((int32)CurLowerState));
+}

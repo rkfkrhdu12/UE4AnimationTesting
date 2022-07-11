@@ -51,7 +51,6 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 		float LeftFootIK;
 
-
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 		FName RootName = "root";
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
@@ -75,21 +74,12 @@ protected:
 		float footToGround = 10.f;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-		bool bIsUpperBody = true;
+		class ACharacter* Character = nullptr;
 private:
-	class ACharacter* Character = nullptr;
 	class USkeletalMeshComponent* CharacterMesh = nullptr;
 	class UCharacterMovementComponent* CharacterMovement = nullptr;
 
 	float MeshLocationOffsetZ = 90.f;
 
 	TArray<AActor*> DummyArray;
-
-public:
-	bool IsUpperBody() const {
-		return bIsUpperBody;
-	}
-	void IsUpperBody(bool val) {
-		bIsUpperBody = val;
-	}
 };
