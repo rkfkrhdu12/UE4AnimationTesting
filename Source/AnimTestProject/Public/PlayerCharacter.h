@@ -24,7 +24,6 @@ enum class EPlayerLowerState : uint8
 	Last		UMETA(DisplayName = "None"),
 };
 
-
 UCLASS()
 class ANIMTESTPROJECT_API APlayerCharacter : public ACharacterBase
 {
@@ -39,7 +38,9 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 public:
-	void OnAnimBlendOut(UAnimMontage* Montage) override;
+	void OnAnimBlendOut() override;
+	void OnUpperAnimBlendOut() override;
+	void OnLowerAnimBlendOut() override;
 	void OnAnimNotify(const FName& notifyName) override;
 
 public:
@@ -48,9 +49,16 @@ public:
 	UFUNCTION(BlueprintCallable)
 		void MoveRight(float AxisValue);
 
+	void Turn(float AxisValue);
+	void LookUp(float AxisValue);
+
 	void MouseLeftPress();
+	void MouseLeftRelease();
 	void MouseRightPress();
 	void MouseRightRelease();
+
+public:
+	void Shoot();
 protected:
 	UPROPERTY(BlueprintReadOnly)
 		class USpringArmComponent* CameraArmComponent;
@@ -65,17 +73,23 @@ protected:
 		EPlayerLowerState CurLowerState = EPlayerLowerState::Idle;
 	EPlayerLowerState PrevLowerState = EPlayerLowerState::Last;
 
+	bool bIsAiming = false;
+
 	bool bIsShootEnable = true;
+	bool bIsShoot = false;
 protected:
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "AnimMontage")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AnimMontage")
 		class UAnimMontage* FireAnimMontage = nullptr;
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "AnimMontage")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AnimMontage")
 		class UAnimMontage* Fire2AnimMontage = nullptr;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 		FName GunMuzzleName = "Player_GunMuzzle";
 
 	TArray<AActor*> DummyActors;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		TSubclassOf<class AActor> Projectile;
 private:
 	void ChangeUpperState(EPlayerUpperState nextState);
 	void ReturnUpperState();

@@ -5,9 +5,6 @@
 ACharacterBase::ACharacterBase()
 {
 	PrimaryActorTick.bCanEverTick = true;
-
-	OnAnimBlendOutDelegate.AddDynamic(this, &ACharacterBase::OnAnimBlendOut);
-	OnAnimNotifyDelegate.AddDynamic(this, &ACharacterBase::OnAnimNotify);
 }
 
 void ACharacterBase::BeginPlay()
@@ -27,12 +24,24 @@ void ACharacterBase::BeginPlay()
 
 void ACharacterBase::OnAnimBlendOutA(UAnimMontage* Montage, bool bInterrupted)
 {
-	OnAnimBlendOutDelegate.Broadcast(Montage);
+	OnAnimBlendOutDelegate.Broadcast();
+
+	OnAnimBlendOut();
+	if (Montage->IsValidSlot("DefaultSlot"))
+	{
+		OnLowerAnimBlendOut();
+	}
+	else
+	{
+		OnUpperAnimBlendOut();
+	}
 }
 
 void ACharacterBase::OnAnimNotifyA(FName NotifyName, const FBranchingPointNotifyPayload& BranchingPointPayload)
 {
 	OnAnimNotifyDelegate.Broadcast(NotifyName);
+
+	OnAnimNotify(NotifyName);
 }
 
 void ACharacterBase::PrintString(const FString& printString)

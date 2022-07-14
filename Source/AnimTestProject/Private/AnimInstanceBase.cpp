@@ -37,6 +37,7 @@ void UAnimInstanceBase::NativeUpdateAnimation(float DeltaSeconds)
 
 	UpdateSpeed();
 	UpdateDirection();
+	UpdatePitch();
 
 	UpdateFootIK();
 }
@@ -54,6 +55,17 @@ void UAnimInstanceBase::UpdateDirection()
 	if (Character == nullptr) return;
 
 	CurDirection = CalculateDirection(Character->GetVelocity(), Character->GetActorRotation());
+}
+
+void UAnimInstanceBase::UpdatePitch()
+{
+	if (Character == nullptr) return;
+
+	float pitch = Character->GetBaseAimRotation().Pitch;
+
+	CurPitch = (pitch >= 180) ?
+		pitch - 360.f :
+		pitch;
 }
 
 void UAnimInstanceBase::UpdateIKDisplacement()

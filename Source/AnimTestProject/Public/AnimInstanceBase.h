@@ -21,6 +21,7 @@ public:
 private:
 	void UpdateSpeed();
 	void UpdateDirection();
+	void UpdatePitch();
 
 	void UpdateIKDisplacement();
 	void UpdateIKGroundDistance(const FName& socketName, FRotator& rotate, float& ik);
@@ -39,6 +40,9 @@ protected:
 		float CurSpeed = 0.f;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 		float CurDirection = 0.f;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+		float CurPitch = 0.f;
+
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 		float Displacement = 0.0f;

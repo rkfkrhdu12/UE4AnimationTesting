@@ -6,6 +6,9 @@
 #include "Camera/CameraComponent.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "AnimInstanceBase.h"
+#include "Kismet/KismetMathLibrary.h"
+#include "ActorFactories/ActorFactory.h"
+#include "Engine/World.h"
 
 // Sets default values
 APlayerCharacter::APlayerCharacter()
@@ -51,20 +54,43 @@ void APlayerCharacter::Tick(float DeltaSeconds)
 	{
 		FHitResult hitresult;
 		FVector GunMuzzleLocation = Mesh->GetSocketLocation(GunMuzzleName);
+
+		FVector AimDirection = UKismetMathLibrary::GetForwardVector(GetBaseAimRotation());
+
 		UKismetSystemLibrary::LineTraceSingle(GetWorld(),
 											  GunMuzzleLocation,
-											  GunMuzzleLocation + GetActorForwardVector() * 500.f,
+											  GunMuzzleLocation + AimDirection * 500.f,
 											  ETraceTypeQuery::TraceTypeQuery1,
 											  false,
 											  DummyActors,
-											  EDrawDebugTrace::ForOneFrame,
+											  EDrawDebugTrace::ForDuration,
 											  hitresult,
 											  true,
 											  FLinearColor::Red,
 											  FLinearColor::Green,
-											  .1f);
+											  .05f);
 
+		if (bIsShoot)
+		{
+			if (CurUpperState == EPlayerUpperState::Fire2 || CurUpperState == EPlayerUpperState::Fire) return;
 
+			if (CurUpperState == EPlayerUpperState::Aim)
+			{
+				ChangeUpperState(EPlayerUpperState::Fire2);
+
+				Shoot();
+
+				PlayAnimMontage(Fire2AnimMontage);
+			}
+			else
+			{
+				ChangeUpperState(EPlayerUpperState::Fire);
+
+				Shoot();
+
+				PlayAnimMontage(FireAnimMontage);
+			}
+		}
 	}
 }
 
@@ -74,47 +100,68 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 
 	check(PlayerInputComponent);
 
+	PlayerInputComponent->BindAxis("MoveForward", this, &APlayerCharacter::MoveForward);
+	PlayerInputComponent->BindAxis("MoveRight", this, &APlayerCharacter::MoveRight);
+
+	PlayerInputComponent->BindAxis("Turn", this, &APlayerCharacter::Turn);
+	PlayerInputComponent->BindAxis("LookUp", this, &APlayerCharacter::LookUp);
+
 	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &APlayerCharacter::MouseLeftPress);
+	PlayerInputComponent->BindAction("Fire", IE_Released, this, &APlayerCharacter::MouseLeftRelease);
 	PlayerInputComponent->BindAction("Fire2", IE_Pressed, this, &APlayerCharacter::MouseRightPress);
 	PlayerInputComponent->BindAction("Fire2", IE_Released, this, &APlayerCharacter::MouseRightRelease);
 }
 
 void APlayerCharacter::MouseLeftPress()
 {
-	if (CurUpperState == EPlayerUpperState::Aim)
-	{
-		ChangeUpperState(EPlayerUpperState::Fire2);
+	bIsShoot = true;
+}
 
-		PlayAnimMontage(Fire2AnimMontage);
-	}
-	else
-	{
-		ChangeUpperState(EPlayerUpperState::Fire);
-
-		PlayAnimMontage(FireAnimMontage);
-	}
+void APlayerCharacter::MouseLeftRelease()
+{
+	bIsShoot = false;
 }
 
 void APlayerCharacter::MouseRightPress()
 {
+	bIsAiming = true;
+
 	ChangeUpperState(EPlayerUpperState::Aim);
 }
 
 void APlayerCharacter::MouseRightRelease()
 {
+	bIsAiming = false;
+
 	ChangeUpperState(EPlayerUpperState::Idle);
 }
 
-void APlayerCharacter::OnAnimBlendOut(UAnimMontage* Montage)
+void APlayerCharacter::Shoot()
 {
-	if (Montage->IsValidSlot("DefaultSlot"))
-	{
-		ReturnLowerState();
-	}
-	else
-	{
-		ReturnUpperState();
-	}
+	if (Projectile == nullptr || !Projectile->IsValidLowLevelFast() ||
+		Mesh == nullptr || !Mesh->IsValidLowLevelFast()) return;
+
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.Owner = this;
+
+	GetWorld()->SpawnActor<AActor>(Projectile, Mesh->GetSocketLocation(GunMuzzleName), GetBaseAimRotation(), SpawnParams);
+}
+
+void APlayerCharacter::OnAnimBlendOut()
+{
+	PrintString("BlendOut");
+}
+
+void APlayerCharacter::OnUpperAnimBlendOut()
+{
+	PrintString("ReturnUpperState");
+	ReturnUpperState();
+}
+
+void APlayerCharacter::OnLowerAnimBlendOut()
+{
+	PrintString("ReturnLowerState");
+	ReturnLowerState();
 }
 
 void APlayerCharacter::OnAnimNotify(const FName& NotifyName)
@@ -133,6 +180,21 @@ void APlayerCharacter::MoveRight(float AxisValue)
 	if (!IsMoveable()) return;
 
 	AddMovementInput(GetActorRightVector(), AxisValue);
+}
+
+void APlayerCharacter::Turn(float AxisValue)
+{
+	AddControllerYawInput(AxisValue);
+}
+
+void APlayerCharacter::LookUp(float AxisValue)
+{
+	if (CameraArmComponent == nullptr || !CameraArmComponent->IsValidLowLevelFast()) return;
+
+	FRotator rotation = CameraArmComponent->GetRelativeRotation();
+
+	float pitch = UKismetMathLibrary::Clamp(rotation.Pitch - AxisValue, -60.f, 60.f);
+	CameraArmComponent->SetRelativeRotation(FRotator(pitch, rotation.Yaw, rotation.Roll));
 }
 
 void APlayerCharacter::ChangeUpperState(EPlayerUpperState nextState)
@@ -162,7 +224,7 @@ void APlayerCharacter::ChangeLowerState(EPlayerLowerState nextState)
 	PrevLowerState = CurLowerState;
 	CurLowerState = nextState;
 
-	PrintUpperState();
+	PrintLowerState();
 }
 
 void APlayerCharacter::ReturnLowerState()
