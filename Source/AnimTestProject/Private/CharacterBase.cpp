@@ -1,6 +1,7 @@
 #include "CharacterBase.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "AnimInstanceBase.h"
+#include "CharacterBehaviorManager.h"
 
 ACharacterBase::ACharacterBase()
 {
@@ -26,15 +27,15 @@ void ACharacterBase::OnAnimBlendOutA(UAnimMontage* Montage, bool bInterrupted)
 {
 	OnAnimBlendOutDelegate.Broadcast();
 
-	OnAnimBlendOut();
-	if (Montage->IsValidSlot("DefaultSlot"))
-	{
-		OnLowerAnimBlendOut();
-	}
-	else
-	{
-		OnUpperAnimBlendOut();
-	}
+	//OnAnimBlendOut();
+	//if (Montage->IsValidSlot("DefaultSlot"))
+	//{
+	//	OnLowerAnimBlendOut();
+	//}
+	//else
+	//{
+	//	OnUpperAnimBlendOut();
+	//}
 }
 
 void ACharacterBase::OnAnimNotifyA(FName NotifyName, const FBranchingPointNotifyPayload& BranchingPointPayload)
@@ -42,6 +43,29 @@ void ACharacterBase::OnAnimNotifyA(FName NotifyName, const FBranchingPointNotify
 	OnAnimNotifyDelegate.Broadcast(NotifyName);
 
 	OnAnimNotify(NotifyName);
+}
+
+void ACharacterBase::OnAnimNotify(const FName& NotifyName)
+{
+}
+
+void ACharacterBase::ChangeState(const uint8& nextState)
+{
+	if (!IsValidBehaviorManager()) return;
+	
+	BehaviorManager->ChangeState(nextState);
+}
+
+void ACharacterBase::ReturnState()
+{
+	if (!IsValidBehaviorManager()) return;
+
+	BehaviorManager->ReturnState();
+}
+
+bool ACharacterBase::IsValidBehaviorManager() const
+{
+	return BehaviorManager != nullptr && BehaviorManager->IsValid();
 }
 
 void ACharacterBase::PrintString(const FString& printString)

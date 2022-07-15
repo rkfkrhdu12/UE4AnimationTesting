@@ -25,17 +25,24 @@ public:
 		virtual void OnAnimBlendOutA(UAnimMontage* Montage, bool bInterrupted);
 	UFUNCTION()
 		virtual void OnAnimNotifyA(FName NotifyName, const FBranchingPointNotifyPayload& BranchingPointPayload);
-
-		virtual void OnAnimBlendOut() {}
-		virtual void OnUpperAnimBlendOut() {}
-		virtual void OnLowerAnimBlendOut() {}
 	UFUNCTION()
-		virtual void OnAnimNotify(const FName& NotifyName) {}
+		virtual void OnAnimNotify(const FName& NotifyName);
+
+	void OnChangeState() {}
+public:
+	void ChangeState(const uint8& nextState);
+	void ReturnState();
+
 protected:
 	class USkeletalMeshComponent* Mesh = nullptr;
 	class UAnimInstanceBase* AnimInstance = nullptr;
+	class UCharacterBehaviorManager* BehaviorManager = nullptr;
 
-protected:
+	uint8 CurState = static_cast<uint8>(0);
+public:
+	bool IsValidBehaviorManager() const;
+
+protected: /*         Debug         */
 	void PrintString(const FString& printString);
 };
 
