@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "CharacterBase.h"
+#include "InputDataComponent.h"
 #include "PlayerCharacter.generated.h"
 
 UENUM(BlueprintType)
@@ -22,28 +23,12 @@ class ANIMTESTPROJECT_API APlayerCharacter : public ACharacterBase
 	GENERATED_BODY()
 public:
 	APlayerCharacter();
-
-protected:
-	virtual void BeginPlay() override;
 public:
-	virtual void Tick(float DeltaSeconds) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-public:
-	UFUNCTION(BlueprintCallable)
-		void MoveForward(float AxisValue);
-	UFUNCTION(BlueprintCallable)
-		void MoveRight(float AxisValue);
-
-	void Turn(float AxisValue);
-	void LookUp(float AxisValue);
-
-	void MouseLeftPress();
-	void MouseLeftRelease();
-	void MouseRightPress();
-	void MouseRightRelease();
-
 protected:
+	class ACameraManager* CamareManager;
+
 	UPROPERTY(BlueprintReadOnly)
 		class USpringArmComponent* CameraArmComponent;
 	UPROPERTY(BlueprintReadOnly)
@@ -61,6 +46,17 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		TSubclassOf<class AActor> Projectile;
+public: 
+	void MoveForward(float AxisValue);
+	void MoveRight(float AxisValue);
+
+	void Turn(float AxisValue);
+	void LookUp(float AxisValue);
+
+	void MouseLeftPress();
+	void MouseLeftRelease();
+	void MouseRightPress();
+	void MouseRightRelease();
 public:
 	bool IsValidInputDataComponent() const;
 };

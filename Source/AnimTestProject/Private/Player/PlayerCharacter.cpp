@@ -10,8 +10,9 @@
 #include "ActorFactories/ActorFactory.h"
 #include "Engine/World.h"
 #include "Player/InputDataComponent.h"
+#include "Player/CameraManager.h"
 
-// Sets default values
+
 APlayerCharacter::APlayerCharacter()
 {
 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
@@ -41,116 +42,48 @@ APlayerCharacter::APlayerCharacter()
 	CameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	CameraComponent->SetupAttachment(CameraArmComponent);
 
+	CamareManager->CreateDefaultSubobject<ACameraManager>(TEXT("CamaraManager"));
+
 	InputDataComponent = CreateDefaultSubobject<UInputDataComponent>(TEXT("InputData"));
 }
 
-void APlayerCharacter::BeginPlay()
-{
-	Super::BeginPlay();
-}
-
-void APlayerCharacter::Tick(float DeltaSeconds)
-{
-	Super::Tick(DeltaSeconds);
-
-	// if (bIsShootEnable)
-	{
-		//FHitResult hitresult;
-		//FVector GunMuzzleLocation = Mesh->GetSocketLocation(GunMuzzleName);
-
-		//FVector AimDirection = UKismetMathLibrary::GetForwardVector(GetBaseAimRotation());
-
-		//UKismetSystemLibrary::LineTraceSingle(GetWorld(),
-		//									  GunMuzzleLocation,
-		//									  GunMuzzleLocation + AimDirection * 500.f,
-		//									  ETraceTypeQuery::TraceTypeQuery1,
-		//									  false,
-		//									  DummyActors,
-		//									  EDrawDebugTrace::ForDuration,
-		//									  hitresult,
-		//									  true,
-		//									  FLinearColor::Red,
-		//									  FLinearColor::Green,
-		//									  .05f);
-
-		//if (bIsShoot)
-		//{
-		//	if (CurUpperState == EPlayerUpperState::Fire2 || CurUpperState == EPlayerUpperState::Fire) return;
-
-		//	if (CurUpperState == EPlayerUpperState::Aim)
-		//	{
-		//		ChangeUpperState(EPlayerUpperState::Fire2);
-
-		//		Shoot();
-
-		//		PlayAnimMontage(Fire2AnimMontage);
-		//	}
-		//	else
-		//	{
-		//		ChangeUpperState(EPlayerUpperState::Fire);
-
-		//		Shoot();
-
-		//		PlayAnimMontage(FireAnimMontage);
-		//	}
-		//}
-	}
-}
+/* 입력 데이터 델리게이트 바인딩 함수들입니다. */
+#pragma region InputData Binding Functions 
 
 void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
-	check(PlayerInputComponent);
-	
-	PlayerInputComponent->BindAxis("MoveForward", this, &APlayerCharacter::MoveForward);
-	PlayerInputComponent->BindAxis("MoveRight", this, &APlayerCharacter::MoveRight);
-
-	PlayerInputComponent->BindAxis("Turn", this, &APlayerCharacter::Turn);
-	PlayerInputComponent->BindAxis("LookUp", this, &APlayerCharacter::LookUp);
-
-	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &APlayerCharacter::MouseLeftPress);
-	PlayerInputComponent->BindAction("Fire", IE_Released, this, &APlayerCharacter::MouseLeftRelease);
-	PlayerInputComponent->BindAction("Fire2", IE_Pressed, this, &APlayerCharacter::MouseRightPress);
-	PlayerInputComponent->BindAction("Fire2", IE_Released, this, &APlayerCharacter::MouseRightRelease);
+	InputDataComponent->Setup(PlayerInputComponent);
 }
 
 void APlayerCharacter::MouseLeftPress()
 {
+	if (!IsValidInputDataComponent()) return;
+
+	InputDataComponent->IsShoot(true);
 }
 
 void APlayerCharacter::MouseLeftRelease()
 {
+	if (!IsValidInputDataComponent()) return;
+
+	InputDataComponent->IsShoot(false);
 }
 
 void APlayerCharacter::MouseRightPress()
 {
-	// bIsAiming = true;
+	if (!IsValidInputDataComponent()) return;
 
-	// ChangeUpperState(EPlayerUpperState::Aim);
+	InputDataComponent->IsAim(true);
 }
 
 void APlayerCharacter::MouseRightRelease()
 {
-	// bIsAiming = false;
+	if (!IsValidInputDataComponent()) return;
 
-	// ChangeUpperState(EPlayerUpperState::Idle);
+	InputDataComponent->IsAim(false);
 }
-bool APlayerCharacter::IsValidInputDataComponent() const
-{
-	return InputDataComponent != nullptr && InputDataComponent->IsValidLowLevelFast();
-}
-//
-//void APlayerCharacter::Shoot()
-//{
-//	if (Projectile == nullptr || !Projectile->IsValidLowLevelFast() ||
-//		Mesh == nullptr || !Mesh->IsValidLowLevelFast()) return;
-//
-//	FActorSpawnParameters SpawnParams;
-//	SpawnParams.Owner = this;
-//
-//	GetWorld()->SpawnActor<AActor>(Projectile, Mesh->GetSocketLocation(GunMuzzleName), GetBaseAimRotation(), SpawnParams);
-//}
 
 void APlayerCharacter::MoveForward(float AxisValue)
 {
@@ -171,8 +104,6 @@ void APlayerCharacter::Turn(float AxisValue)
 	if (!IsValidInputDataComponent()) return;
 
 	InputDataComponent->SetMouseLocationX(AxisValue);
-
-	// AddControllerYawInput(AxisValue);
 }
 
 void APlayerCharacter::LookUp(float AxisValue)
@@ -180,11 +111,28 @@ void APlayerCharacter::LookUp(float AxisValue)
 	if (!IsValidInputDataComponent()) return;
 
 	InputDataComponent->SetMouseLocationY(AxisValue);
-
-	// if (CameraArmComponent == nullptr || !CameraArmComponent->IsValidLowLevelFast()) return;
-	// 
-	// FRotator rotation = CameraArmComponent->GetRelativeRotation();
-	// 
-	// float pitch = UKismetMathLibrary::Clamp(rotation.Pitch - AxisValue, -60.f, 60.f);
-	// CameraArmComponent->SetRelativeRotation(FRotator(pitch, rotation.Yaw, rotation.Roll));
 }
+
+#pragma endregion
+
+/* 변수의 유효함을 검증해주는 함수들입니다. */
+#pragma region Variable Valid Functions 
+
+bool APlayerCharacter::IsValidInputDataComponent() const
+{
+	return InputDataComponent != nullptr && InputDataComponent->IsValidLowLevelFast();
+}
+
+#pragma endregion
+
+
+//void APlayerCharacter::Shoot()
+//{
+//	if (Projectile == nullptr || !Projectile->IsValidLowLevelFast() ||
+//		Mesh == nullptr || !Mesh->IsValidLowLevelFast()) return;
+//
+//	FActorSpawnParameters SpawnParams;
+//	SpawnParams.Owner = this;
+//
+//	GetWorld()->SpawnActor<AActor>(Projectile, Mesh->GetSocketLocation(GunMuzzleName), GetBaseAimRotation(), SpawnParams);
+//}

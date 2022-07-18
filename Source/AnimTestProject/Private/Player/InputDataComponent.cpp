@@ -2,19 +2,31 @@
 
 
 #include "Player/InputDataComponent.h"
+#include "Player/PlayerCharacter.h"
+#include "Components/InputComponent.h"
 
-// Sets default values for this component's properties
-UInputDataComponent::UInputDataComponent()
+void UInputDataComponent::Setup(UInputComponent* InputComponent)
 {
-	PrimaryComponentTick.bCanEverTick = true;
+	return;
+
+	check(InputComponent);
+
+	APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(GetOwner());
+
+	InputComponent->BindAxis("MoveForward", PlayerCharacter, &APlayerCharacter::MoveForward);
+	InputComponent->BindAxis("MoveRight", PlayerCharacter, &APlayerCharacter::MoveRight);
+
+	InputComponent->BindAxis("Turn", PlayerCharacter, &APlayerCharacter::Turn);
+	InputComponent->BindAxis("LookUp", PlayerCharacter, &APlayerCharacter::LookUp);
+
+	InputComponent->BindAction("Fire", IE_Pressed, PlayerCharacter, &APlayerCharacter::MouseLeftPress);
+	InputComponent->BindAction("Fire", IE_Released, PlayerCharacter, &APlayerCharacter::MouseLeftRelease);
+	InputComponent->BindAction("Fire2", IE_Pressed, PlayerCharacter, &APlayerCharacter::MouseRightPress);
+	InputComponent->BindAction("Fire2", IE_Released, PlayerCharacter, &APlayerCharacter::MouseRightRelease);
 }
 
-/*        GetSet Function        */
-
-// UInputDataComponent* UInputDataComponent::GetInstance()
-// {
-// 	return instance;
-// }
+/*       입력값들에 대한 Getter Setter 함수들 입니다.        */
+#pragma region Get Set Functions
 
 FVector2D UInputDataComponent::GetMoveDirection() const
 {
@@ -24,16 +36,19 @@ FVector2D UInputDataComponent::GetMoveDirection() const
 void UInputDataComponent::SetMoveDirection(const FVector2D& val)
 {
 	MoveDirection = val;
+	OnInputMoveDirection.Broadcast();
 }
 
 void UInputDataComponent::SetMoveDirectionX(float val)
 {
 	MoveDirection.X = val;
+	OnInputMoveDirectionX.Broadcast();
 }
 
 void UInputDataComponent::SetMoveDirectionY(float val)
 {
 	MoveDirection.Y = val;
+	OnInputMoveDirectionY.Broadcast();
 }
 
 bool UInputDataComponent::IsAim() const
@@ -44,6 +59,7 @@ bool UInputDataComponent::IsAim() const
 void UInputDataComponent::IsAim(bool val)
 {
 	bIsAim = val;
+	OnInputAiming.Broadcast();
 }
 
 bool UInputDataComponent::IsShoot() const
@@ -54,6 +70,7 @@ bool UInputDataComponent::IsShoot() const
 void UInputDataComponent::IsShoot(bool val)
 {
 	bIsShoot = val;
+	OnInputShooting.Broadcast();
 }
 
 FVector2D UInputDataComponent::GetMouseLocation() const
@@ -64,12 +81,19 @@ FVector2D UInputDataComponent::GetMouseLocation() const
 void UInputDataComponent::SetMouseLocation(const FVector2D& val)
 {
 	MouseLocation = val;
+	OnInputMouseLocation.Broadcast();
 }
 
 void UInputDataComponent::SetMouseLocationX(float val)
 {
+	MouseLocation.X = val;
+	OnInputMouseLocationX.Broadcast();
 }
 
 void UInputDataComponent::SetMouseLocationY(float val)
 {
+	MouseLocation.Y = val;
+	OnInputMouseLocationY.Broadcast();
 }
+
+#pragma endregion

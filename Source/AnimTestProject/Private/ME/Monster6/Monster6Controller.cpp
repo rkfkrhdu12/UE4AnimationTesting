@@ -2,8 +2,6 @@
 
 
 #include "ME/Monster6/Monster6Controller.h"
-#include "Perception/AISenseConfig_Sight.h"
-#include "Perception/AIPerceptionComponent.h"
 #include "ME/Monster6/Monster6Character.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "BehaviorTree/BehaviorTree.h"
@@ -14,30 +12,8 @@ AMonster6Controller::AMonster6Controller()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
-	this->bAttachToPawn = true;
+	this->bAttachToPawn = false;
 	
-	Perception = CreateDefaultSubobject<UAIPerceptionComponent>(TEXT("Perception"));
-	if (!IsValidPerception()) return;
-
-	{ // Sight Init
-		SightConfig = CreateDefaultSubobject<UAISenseConfig_Sight>(TEXT("Sight Config"));
-		if (!IsValidSightConfig()) return;
-		SightConfig->SightRadius = SightRadius;
-		SightConfig->LoseSightRadius = LoseSightRadius;
-		SightConfig->PeripheralVisionAngleDegrees = SightFOV;
-		SightConfig->SetMaxAge(SightAge);
-		
-		SightConfig->DetectionByAffiliation.bDetectEnemies = true;
-		SightConfig->DetectionByAffiliation.bDetectFriendlies = true;
-		SightConfig->DetectionByAffiliation.bDetectNeutrals = true;
-
-		Perception->SetDominantSense(*SightConfig->GetSenseImplementation());
-		Perception->OnPerceptionUpdated.AddDynamic(this, &AMonster6Controller::OnPawnDetected);
-		Perception->ConfigureSense(*SightConfig);
-	}
-
-	SetPerceptionComponent(*Perception);
-
 	if (IsValidBehaviorTree())
 	{
 		BehaviorTreeComponent = CreateDefaultSubobject<UBehaviorTreeComponent>(TEXT("BT Component"));
@@ -81,23 +57,6 @@ FRotator AMonster6Controller::GetControlRotation() const
 		FRotator::ZeroRotator;
 }
 
-void AMonster6Controller::OnPawnDetected(const TArray<AActor*>& DetectedPawns)
-{
-	UKismetSystemLibrary::PrintString(GetWorld(), "OnPawnDetected");
-}
-
-
-
-
-bool AMonster6Controller::IsValidPerception() const
-{
-	return Perception != nullptr && Perception->IsValidLowLevelFast();
-}
-
-bool AMonster6Controller::IsValidSightConfig() const
-{
-	return SightConfig != nullptr && SightConfig->IsValidLowLevelFast();
-}
 
 bool AMonster6Controller::IsValidCharacter() const
 {

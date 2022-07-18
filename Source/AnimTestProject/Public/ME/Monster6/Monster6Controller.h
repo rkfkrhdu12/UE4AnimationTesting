@@ -28,10 +28,6 @@ public:
 
 	virtual FRotator GetControlRotation() const override;
 public:
-	UFUNCTION()
-		void OnPawnDetected(const TArray<AActor*>& DetectedPawns);
-
-public:
 	UPROPERTY(BlueprintReadWrite)
 		EMonsterState CurState = EMonsterState::Idle;
 
@@ -40,28 +36,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		class UBehaviorTree* BehaviorTree;
 	class UBehaviorTreeComponent* BehaviorTreeComponent;
-
-	//UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	//	class UBlackboardComponent* BlackBoard;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		class UAIPerceptionComponent* Perception;
-
-	class UAISenseConfig_Sight* SightConfig;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = AI)
-		float SightRadius = 500.f;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = AI)
-		float LoseSightRadius = SightRadius + 50.f;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = AI)
-		float SightAge = 3.f;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = AI)
-		float SightFOV = 90.f;
 private:
 
 public:
-	bool IsValidPerception() const;
-	bool IsValidSightConfig() const;
 	bool IsValidCharacter() const;
 	bool IsValidBehaviorTree() const;
 	bool IsValidBehaviorTreeComponent() const;
