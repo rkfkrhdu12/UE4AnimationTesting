@@ -4,9 +4,20 @@
 #include "GameFramework/Character.h"
 #include "CharacterBase.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnCharacterEvent);
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FAnimBlendOut);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FAnimNotify, const FName&, NotifyName);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnAnimBlendOut);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnAnimNotify, const FName&, NotifyName);
+
+
+UENUM(BlueprintType)
+enum class ECharacterState : uint8
+{
+	Idle		UMETA(DisplayName = "Idle"),
+	Move		UMETA(DisplayName = "Move"),
+	Last		UMETA(DisplayName = "None"),
+};
+
 
 UCLASS()
 class ANIMTESTPROJECT_API ACharacterBase : public ACharacter
@@ -18,17 +29,15 @@ public:
 protected:
 	virtual void BeginPlay() override;
 public:
-	FAnimBlendOut OnAnimBlendOutDelegate;
-	FAnimNotify OnAnimNotifyDelegate;
+	FOnCharacterEvent OnChangeStateDelegate;
+
+	FOnAnimBlendOut OnAnimBlendOutDelegate;
+	FOnAnimNotify OnAnimNotifyDelegate;
 
 	UFUNCTION()
 		virtual void OnAnimBlendOutA(UAnimMontage* Montage, bool bInterrupted);
 	UFUNCTION()
 		virtual void OnAnimNotifyA(FName NotifyName, const FBranchingPointNotifyPayload& BranchingPointPayload);
-	UFUNCTION()
-		virtual void OnAnimNotify(const FName& NotifyName);
-
-	void OnChangeState() {}
 public:
 	void ChangeState(const uint8& nextState);
 	void ReturnState();

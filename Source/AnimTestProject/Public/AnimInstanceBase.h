@@ -17,7 +17,6 @@ public:
 	virtual void NativeBeginPlay() override;
 
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
-
 private:
 	void UpdateSpeed();
 	void UpdateDirection();
@@ -42,7 +41,6 @@ protected:
 		float CurDirection = 0.f;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 		float CurPitch = 0.f;
-
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 		float Displacement = 0.0f;

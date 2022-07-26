@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "CharacterBase.h"
-#include "InputDataComponent.h"
 #include "PlayerCharacter.generated.h"
 
 UENUM(BlueprintType)
@@ -27,13 +26,13 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 protected:
-	class ACameraManager* CamareManager;
+	class UCameraManager* CamareManager = nullptr;
 
 	UPROPERTY(BlueprintReadOnly)
 		class USpringArmComponent* CameraArmComponent;
 	UPROPERTY(BlueprintReadOnly)
 		class UCameraComponent* CameraComponent;
-	class UInputDataComponent* InputDataComponent;
+	class UInputDataComponent* InputDataComponent = nullptr;
 
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AnimMontage")
@@ -57,6 +56,10 @@ public:
 	void MouseLeftRelease();
 	void MouseRightPress();
 	void MouseRightRelease();
+
+	class USpringArmComponent* GetCameraArmComponent() const { return CameraArmComponent; }
+	class UCameraComponent* GetCameraComponent() const { return CameraComponent; }
+	class UInputDataComponent* GetInputDataComponent() const { return InputDataComponent; }
 public:
 	bool IsValidInputDataComponent() const;
 };

@@ -2,16 +2,19 @@
 
 
 #include "Player/InputDataComponent.h"
-#include "Player/PlayerCharacter.h"
 #include "Components/InputComponent.h"
+#include "Player/PlayerCharacter.h"
+
+UInputDataComponent::UInputDataComponent()
+{
+}
 
 void UInputDataComponent::Setup(UInputComponent* InputComponent)
 {
-	return;
-
 	check(InputComponent);
 
 	APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(GetOwner());
+	if (PlayerCharacter == nullptr || !PlayerCharacter->IsValidLowLevelFast()) return;
 
 	InputComponent->BindAxis("MoveForward", PlayerCharacter, &APlayerCharacter::MoveForward);
 	InputComponent->BindAxis("MoveRight", PlayerCharacter, &APlayerCharacter::MoveRight);
@@ -28,27 +31,30 @@ void UInputDataComponent::Setup(UInputComponent* InputComponent)
 /*       입력값들에 대한 Getter Setter 함수들 입니다.        */
 #pragma region Get Set Functions
 
-FVector2D UInputDataComponent::GetMoveDirection() const
+FVector UInputDataComponent::GetMoveDirection() const
 {
 	return MoveDirection;
 }
 
-void UInputDataComponent::SetMoveDirection(const FVector2D& val)
+void UInputDataComponent::SetMoveDirection(const FVector& val)
 {
 	MoveDirection = val;
-	OnInputMoveDirection.Broadcast();
+	if (OnInputMoveDirection.IsBound())
+		OnInputMoveDirection.Broadcast();
 }
 
 void UInputDataComponent::SetMoveDirectionX(float val)
 {
 	MoveDirection.X = val;
-	OnInputMoveDirectionX.Broadcast();
+	if (OnInputMoveDirectionX.IsBound())
+		OnInputMoveDirectionX.Broadcast();
 }
 
 void UInputDataComponent::SetMoveDirectionY(float val)
 {
 	MoveDirection.Y = val;
-	OnInputMoveDirectionY.Broadcast();
+	if (OnInputMoveDirectionY.IsBound())
+		OnInputMoveDirectionY.Broadcast();
 }
 
 bool UInputDataComponent::IsAim() const
@@ -59,7 +65,8 @@ bool UInputDataComponent::IsAim() const
 void UInputDataComponent::IsAim(bool val)
 {
 	bIsAim = val;
-	OnInputAiming.Broadcast();
+	if (OnInputAiming.IsBound())
+		OnInputAiming.Broadcast();
 }
 
 bool UInputDataComponent::IsShoot() const
@@ -70,30 +77,34 @@ bool UInputDataComponent::IsShoot() const
 void UInputDataComponent::IsShoot(bool val)
 {
 	bIsShoot = val;
-	OnInputShooting.Broadcast();
+	if (OnInputShooting.IsBound())
+		OnInputShooting.Broadcast();
 }
 
-FVector2D UInputDataComponent::GetMouseLocation() const
+FVector UInputDataComponent::GetMouseLocation() const
 {
 	return MouseLocation;
 }
 
-void UInputDataComponent::SetMouseLocation(const FVector2D& val)
+void UInputDataComponent::SetMouseLocation(const FVector& val)
 {
 	MouseLocation = val;
-	OnInputMouseLocation.Broadcast();
+	if (OnInputMouseLocation.IsBound())
+		OnInputMouseLocation.Broadcast();
 }
 
 void UInputDataComponent::SetMouseLocationX(float val)
 {
 	MouseLocation.X = val;
-	OnInputMouseLocationX.Broadcast();
+	if (OnInputMouseLocationX.IsBound())
+		OnInputMouseLocationX.Broadcast();
 }
 
 void UInputDataComponent::SetMouseLocationY(float val)
 {
 	MouseLocation.Y = val;
-	OnInputMouseLocationY.Broadcast();
+	if (OnInputMouseLocationY.IsBound())
+		OnInputMouseLocationY.Broadcast();
 }
 
 #pragma endregion

@@ -8,33 +8,35 @@
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnInputUpdate);
 
-UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
+UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class ANIMTESTPROJECT_API UInputDataComponent : public UActorComponent
 {
 	GENERATED_BODY()
+public:
+	UInputDataComponent();
 protected:
-	FVector2D MoveDirection = FVector2D::ZeroVector;
-	FVector2D MouseLocation = FVector2D::ZeroVector;
+	FVector MoveDirection = FVector::ZeroVector;
+	FVector MouseLocation = FVector::ZeroVector;
 
 	bool bIsAim = false;
 	bool bIsShoot = false;
 public:
 	void Setup(class UInputComponent* inputComponent);
 
-	FVector2D GetMoveDirection() const;
-	void SetMoveDirection(const FVector2D& val);
-	FOnInputUpdate OnInputMoveDirection;
+	FVector GetMoveDirection() const;
+	void SetMoveDirection(const FVector& val);
 	void SetMoveDirectionX(float val);
-	FOnInputUpdate OnInputMoveDirectionX;
 	void SetMoveDirectionY(float val);
+	FOnInputUpdate OnInputMoveDirection;
+	FOnInputUpdate OnInputMoveDirectionX;
 	FOnInputUpdate OnInputMoveDirectionY;
 
-	FVector2D GetMouseLocation() const;
-	void SetMouseLocation(const FVector2D& val);
-	FOnInputUpdate OnInputMouseLocation;
+	FVector GetMouseLocation() const;
+	void SetMouseLocation(const FVector& val);
 	void SetMouseLocationX(float val);
-	FOnInputUpdate OnInputMouseLocationX;
 	void SetMouseLocationY(float val);
+	FOnInputUpdate OnInputMouseLocation;
+	FOnInputUpdate OnInputMouseLocationX;
 	FOnInputUpdate OnInputMouseLocationY;
 
 	bool IsAim() const;

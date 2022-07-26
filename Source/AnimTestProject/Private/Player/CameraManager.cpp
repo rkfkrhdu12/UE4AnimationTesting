@@ -6,50 +6,94 @@
 #include "Kismet/KismetSystemLibrary.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Camera/CameraComponent.h"
+#include "Player/InputDataComponent.h"
 
-ACameraManager::ACameraManager()
+UCameraManager::UCameraManager()
 {
 	PlayerCharacter = Cast<APlayerCharacter>(GetOwner());
 	if (!IsValidPlayerCharacter()) return;
 
-	FTimerDelegate TimerDelegate;
-	TimerDelegate.BindUFunction(this, FName("Initialize"));
-	GetWorld()->GetTimerManager().SetTimerForNextTick(TimerDelegate);
+	CameraArmComponent = PlayerCharacter->GetCameraArmComponent();
+	if (!IsValidCameraArmComponent()) return;
+	CameraArmComponent->SetupAttachment(PlayerCharacter->GetRootComponent());
+	CameraArmComponent->TargetArmLength = 300.f;
+
+	CameraArmComponent->bInheritPitch = false;
+	CameraArmComponent->bInheritYaw = true;
+	CameraArmComponent->bInheritRoll = false;
+
+	CameraArmComponent->bEnableCameraLag = true;
+	CameraArmComponent->CameraLagSpeed = 10.f;
+
+	CameraArmComponent->bEnableCameraRotationLag = true;
+	CameraArmComponent->CameraRotationLagSpeed = 30.f;
+
+	FVector CameraArmLocation = FVector::ZeroVector;
+	CameraArmLocation.X = -4.3f;
+	CameraArmLocation.Y = 10.f;
+	CameraArmLocation.Z = 40.f;
+	FRotator CameraArmRotate = FRotator(340.0f, 0, .0f);
+	CameraArmComponent->SetRelativeLocationAndRotation(CameraArmLocation, CameraArmRotate);
+
+	CameraComponent = PlayerCharacter->GetCameraComponent();
+	if (!IsValidCameraComponent()) return;
+	CameraComponent->SetupAttachment(CameraArmComponent);
+
+	InputDataComponent = PlayerCharacter->GetInputDataComponent();
+	if (!IsValidInputDataComponent()) return;
+
+	UE_LOG(LogTemp, Log, TEXT("CameraManager Init Complete"));
 }
 
-void ACameraManager::Initialize()
+void UCameraManager::BeginPlay()
 {
-	UKismetSystemLibrary::PrintString(GetWorld(), TEXT("Init !"));
+	if (!IsValidInputDataComponent()) return;
+
+	InputDataComponent->OnInputMouseLocationX.AddDynamic(this, &UCameraManager::Turn);
+	InputDataComponent->OnInputMouseLocationY.AddDynamic(this, &UCameraManager::LookUp);
+
+	UE_LOG(LogTemp, Log, TEXT("CameraManager BeginPlay Complete"));
 }
 
-void ACameraManager::Turn(float AxisValue)
+void UCameraManager::Turn()
 {
-	if (!IsValidPlayerCharacter()) return;
+	if (!IsValidPlayerCharacter() || !IsValidInputDataComponent()) return;
 
-	PlayerCharacter->AddControllerYawInput(AxisValue);
+	PlayerCharacter->AddControllerYawInput(InputDataComponent->GetMouseLocation().X);
 }
 
-void ACameraManager::LookUp(float AxisValue)
+void UCameraManager::LookUp()
 {
-	if (!IsValidPlayerCharacter() || !IsValidCameraArmComponent()) return;
+	if (!IsValidPlayerCharacter() || !IsValidCameraArmComponent() || !IsValidInputDataComponent()) return;
 
 	FRotator rotation = CameraArmComponent->GetRelativeRotation();
 
-	float pitch = UKismetMathLibrary::Clamp(rotation.Pitch - AxisValue, -60.f, 60.f);
+	float pitch = UKismetMathLibrary::Clamp(rotation.Pitch - InputDataComponent->GetMouseLocation().Y, -60.f, 60.f);
 	CameraArmComponent->SetRelativeRotation(FRotator(pitch, rotation.Yaw, rotation.Roll));
 }
 
 /* 변수의 유효함을 검증해주는 함수들입니다. */
 #pragma region Variable Valid Functions 
 
-bool ACameraManager::IsValidPlayerCharacter() const
+bool UCameraManager::IsValidPlayerCharacter() const
 {
 	return PlayerCharacter != nullptr && PlayerCharacter->IsValidLowLevelFast();
 }
 
-bool ACameraManager::IsValidCameraArmComponent() const
+bool UCameraManager::IsValidCameraArmComponent() const
 {
 	return CameraArmComponent != nullptr && CameraArmComponent->IsValidLowLevelFast();
+}
+
+bool UCameraManager::IsValidCameraComponent() const
+{
+	return CameraComponent != nullptr && CameraComponent->IsValidLowLevelFast();
+}
+
+bool UCameraManager::IsValidInputDataComponent() const
+{
+	return InputDataComponent != nullptr && InputDataComponent->IsValidLowLevelFast();
 }
 
 #pragma endregion

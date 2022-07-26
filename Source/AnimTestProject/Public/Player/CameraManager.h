@@ -3,23 +3,25 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Camera/PlayerCameraManager.h"
+#include "Components/ActorComponent.h"
 #include "CameraManager.generated.h"
 
 /**
  *
  */
-UCLASS()
-class ANIMTESTPROJECT_API ACameraManager : public APlayerCameraManager
+UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
+class ANIMTESTPROJECT_API UCameraManager : public UActorComponent
 {
 	GENERATED_BODY()
 public:
-	ACameraManager();
-private:
-	void Initialize();
+	UCameraManager();
+protected:
+	virtual void BeginPlay() override;
 public:
-	void Turn(float AxisValue);
-	void LookUp(float AxisValue);
+	UFUNCTION()
+		void Turn();
+	UFUNCTION()
+		void LookUp();
 
 protected:
 	class APlayerCharacter* PlayerCharacter;
@@ -32,4 +34,6 @@ protected:
 public:
 	bool IsValidPlayerCharacter() const;
 	bool IsValidCameraArmComponent() const;
+	bool IsValidCameraComponent() const;
+	bool IsValidInputDataComponent() const;
 };

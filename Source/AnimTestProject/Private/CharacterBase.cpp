@@ -41,12 +41,6 @@ void ACharacterBase::OnAnimBlendOutA(UAnimMontage* Montage, bool bInterrupted)
 void ACharacterBase::OnAnimNotifyA(FName NotifyName, const FBranchingPointNotifyPayload& BranchingPointPayload)
 {
 	OnAnimNotifyDelegate.Broadcast(NotifyName);
-
-	OnAnimNotify(NotifyName);
-}
-
-void ACharacterBase::OnAnimNotify(const FName& NotifyName)
-{
 }
 
 void ACharacterBase::ChangeState(const uint8& nextState)
@@ -54,6 +48,7 @@ void ACharacterBase::ChangeState(const uint8& nextState)
 	if (!IsValidBehaviorManager()) return;
 	
 	BehaviorManager->ChangeState(nextState);
+	OnChangeStateDelegate.Broadcast();
 }
 
 void ACharacterBase::ReturnState()
@@ -61,11 +56,12 @@ void ACharacterBase::ReturnState()
 	if (!IsValidBehaviorManager()) return;
 
 	BehaviorManager->ReturnState();
+	OnChangeStateDelegate.Broadcast();
 }
 
 bool ACharacterBase::IsValidBehaviorManager() const
 {
-	return BehaviorManager != nullptr && BehaviorManager->IsValid();
+	return BehaviorManager != nullptr;
 }
 
 void ACharacterBase::PrintString(const FString& printString)
