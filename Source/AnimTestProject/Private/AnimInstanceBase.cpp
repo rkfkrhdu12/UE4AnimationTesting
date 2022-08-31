@@ -17,8 +17,12 @@ void UAnimInstanceBase::NativeBeginPlay()
 	Super::NativeBeginPlay();
 
 	Character = Cast<ACharacter>(TryGetPawnOwner());
+
+	UKismetSystemLibrary::PrintString(GetWorld(), TEXT("Init Character"));
 	if (Character != nullptr && Character->IsValidLowLevelFast())
 	{
+		UKismetSystemLibrary::PrintString(GetWorld(), TEXT("Valid Character"));
+
 		CharacterMesh = Character->GetMesh();
 		if (CharacterMesh != nullptr && CharacterMesh->IsValidLowLevelFast())
 		{

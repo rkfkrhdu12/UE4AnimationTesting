@@ -52,8 +52,6 @@ void UCameraManager::BeginPlay()
 
 	InputDataComponent->OnInputMouseLocationX.AddDynamic(this, &UCameraManager::Turn);
 	InputDataComponent->OnInputMouseLocationY.AddDynamic(this, &UCameraManager::LookUp);
-
-	UE_LOG(LogTemp, Log, TEXT("CameraManager BeginPlay Complete"));
 }
 
 void UCameraManager::Turn()
@@ -69,7 +67,7 @@ void UCameraManager::LookUp()
 
 	FRotator rotation = CameraArmComponent->GetRelativeRotation();
 
-	float pitch = UKismetMathLibrary::Clamp(rotation.Pitch - InputDataComponent->GetMouseLocation().Y, -60.f, 60.f);
+	float pitch = UKismetMathLibrary::Clamp(rotation.Pitch + InputDataComponent->GetMouseLocation().Y, -60.f, 60.f);
 	CameraArmComponent->SetRelativeRotation(FRotator(pitch, rotation.Yaw, rotation.Roll));
 }
 

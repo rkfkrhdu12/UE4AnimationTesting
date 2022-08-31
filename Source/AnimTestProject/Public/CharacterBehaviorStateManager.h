@@ -1,9 +1,9 @@
 #pragma once
 
-class UCharacterBehaviorManager
+class UCharacterBehaviorStateManager
 {
 public:
-	UCharacterBehaviorManager();
+	UCharacterBehaviorStateManager();
 
 	void ChangeState(const uint8 state);
 	void ReturnState();

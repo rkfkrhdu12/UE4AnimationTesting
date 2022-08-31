@@ -18,7 +18,6 @@ enum class ECharacterState : uint8
 	Last		UMETA(DisplayName = "None"),
 };
 
-
 UCLASS()
 class ANIMTESTPROJECT_API ACharacterBase : public ACharacter
 {
@@ -45,7 +44,7 @@ public:
 protected:
 	class USkeletalMeshComponent* Mesh = nullptr;
 	class UAnimInstanceBase* AnimInstance = nullptr;
-	class UCharacterBehaviorManager* BehaviorManager = nullptr;
+	class UCharacterBehaviorStateManager* StateManager = nullptr;
 
 	uint8 CurState = static_cast<uint8>(0);
 public:

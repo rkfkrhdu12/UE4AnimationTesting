@@ -1,10 +1,10 @@
-#include "CharacterBehaviorManager.h"
+#include "CharacterBehaviorStateManager.h"
 
-UCharacterBehaviorManager::UCharacterBehaviorManager()
+UCharacterBehaviorStateManager::UCharacterBehaviorStateManager()
 {
 }
 
-void UCharacterBehaviorManager::ChangeState(const uint8 state)
+void UCharacterBehaviorStateManager::ChangeState(const uint8 state)
 {
 	if (state == CurState) return;
 
@@ -14,7 +14,7 @@ void UCharacterBehaviorManager::ChangeState(const uint8 state)
 	// Update State
 }
 
-void UCharacterBehaviorManager::ReturnState()
+void UCharacterBehaviorStateManager::ReturnState()
 {
 	if (static_cast<uint8>(99) == PrevState) ChangeState(static_cast<uint8>(0));
 

@@ -1,7 +1,7 @@
 #include "CharacterBase.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "AnimInstanceBase.h"
-#include "CharacterBehaviorManager.h"
+#include "CharacterBehaviorStateManager.h"
 
 ACharacterBase::ACharacterBase()
 {
@@ -47,7 +47,7 @@ void ACharacterBase::ChangeState(const uint8& nextState)
 {
 	if (!IsValidBehaviorManager()) return;
 	
-	BehaviorManager->ChangeState(nextState);
+	StateManager->ChangeState(nextState);
 	OnChangeStateDelegate.Broadcast();
 }
 
@@ -55,13 +55,13 @@ void ACharacterBase::ReturnState()
 {
 	if (!IsValidBehaviorManager()) return;
 
-	BehaviorManager->ReturnState();
+	StateManager->ReturnState();
 	OnChangeStateDelegate.Broadcast();
 }
 
 bool ACharacterBase::IsValidBehaviorManager() const
 {
-	return BehaviorManager != nullptr;
+	return StateManager != nullptr;
 }
 
 void ACharacterBase::PrintString(const FString& printString)
